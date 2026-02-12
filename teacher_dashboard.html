@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="si" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - O/L Mathematics by Sudeepa Wishva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#ec4899',
+                        dark: '#0f172a',
+                        card: '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-dark text-white min-h-screen flex flex-col md:flex-row">
+
+    <!-- Sidebar -->
+    <aside class="w-full md:w-64 bg-card border-r border-white/5 flex-shrink-0">
+        <div class="p-6 border-b border-white/5 flex items-center gap-3">
+            <img src="logo.png" alt="Logo"
+                class="w-12 h-12 rounded-full border border-white/10 shadow-lg object-contain bg-white/5">
+            <div>
+                <h1 class="font-bold text-lg leading-tight">O/L Mathematics by Sudeepa Wishva</h1>
+                <p class="text-xs text-gray-400">Teacher Portal</p>
+            </div>
+        </div>
+
+        <nav class="p-4 space-y-2">
+            <button onclick="showSection('students')" id="nav-students"
+                class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium transition-colors text-left">
+                <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                    </path>
+                </svg>
+                Manage Students
+            </button>
+            <button onclick="showSection('content')" id="nav-content"
+                class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-colors text-left">
+                <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Add Content
+            </button>
+            <button onclick="showSection('marks')" id="nav-marks"
+                class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-colors text-left">
+                <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                    </path>
+                </svg>
+                Enter Marks
+            </button>
+            <button onclick="showSection('settings')" id="nav-settings"
+                class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-colors text-left">
+                <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                Site Settings
+            </button>
+
+            <button onclick="db.logout()"
+                class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-colors mt-12">
+                <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                    </path>
+                </svg>
+                Logout
+            </button>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-8 overflow-y-auto">
+        <header class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-bold">Admin Panel</h2>
+            <div class="px-4 py-2 bg-primary/20 text-primary rounded-lg text-sm font-semibold">Teacher: Admin</div>
+        </header>
+
+        <!-- SECTION: Students -->
+        <section id="sec-students" class="space-y-6">
+            <h3 class="text-xl font-bold flex items-center gap-2">
+                <span class="w-2 h-8 bg-secondary rounded-full"></span>
+                Student Payments
+            </h3>
+
+            <div
+                class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-card p-4 rounded-2xl border border-white/5">
+                <div class="relative w-full sm:w-auto">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" id="searchStudent"
+                        class="pl-10 pr-4 py-2 bg-dark rounded-lg border border-white/10 text-white text-sm focus:outline-none focus:border-primary w-full"
+                        placeholder="Search by Name/ID...">
+                </div>
+                <select id="filterGrade"
+                    class="px-4 py-2 bg-dark rounded-lg border border-white/10 text-white text-sm focus:outline-none focus:border-primary w-full sm:w-auto">
+                    <option value="all">All Grades</option>
+                    <option value="6">Grade 6</option>
+                    <option value="7">Grade 7</option>
+                    <option value="8">Grade 8</option>
+                    <option value="9">Grade 9</option>
+                    <option value="10">Grade 10</option>
+                    <option value="11">Grade 11</option>
+                </select>
+            </div>
+
+            <div class="bg-card rounded-2xl border border-white/5 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-white/5 text-gray-400 text-sm uppercas">
+                            <tr>
+                                <th class="px-6 py-4">Name</th>
+                                <th class="px-6 py-4">Grade</th>
+                                <th class="px-6 py-4">Status (Current Month)</th>
+                                <th class="px-6 py-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody" class="divide-y divide-white/5 text-sm">
+                            <!-- Populated JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Content -->
+        <section id="sec-content" class="hidden space-y-6">
+            <h3 class="text-xl font-bold flex items-center gap-2">
+                <span class="w-2 h-8 bg-primary rounded-full"></span>
+                Add New Content
+            </h3>
+
+            <form id="addContentForm" class="bg-card p-8 rounded-2xl border border-white/5 max-w-2xl space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Content Type</label>
+                        <select id="cType"
+                            class="w-full px-4 py-3 rounded-lg bg-dark border border-white/10 text-white focus:outline-none focus:border-primary">
+                            <option value="link">Live Class Link</option>
+                            <option value="pdf">PDF Material</option>
+                            <option value="recording">Recording (YouTube)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Grade</label>
+                        <select id="cGrade"
+                            class="w-full px-4 py-3 rounded-lg bg-dark border border-white/10 text-white focus:outline-none focus:border-primary">
+                            <option value="6">Grade 6</option>
+                            <option value="7">Grade 7</option>
+                            <option value="8">Grade 8</option>
+                            <option value="9">Grade 9</option>
+                            <option value="10">Grade 10</option>
+                            <option value="11">Grade 11</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Title</label>
+                    <input type="text" id="cTitle"
+                        class="w-full px-4 py-3 rounded-lg bg-dark border border-white/10 text-white focus:outline-none focus:border-primary"
+                        placeholder="Ex: Week 1 - Geometry" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Details/Note</label>
+                    <input type="text" id="cDetails"
+                        class="w-full px-4 py-3 rounded-lg bg-dark border border-white/10 text-white focus:outline-none focus:border-primary"
+                        placeholder="Short description" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">URL</label>
+                    <input type="url" id="cUrl"
+                        class="w-full px-4 py-3 rounded-lg bg-dark border border-white/10 text-white focus:outline-none focus:border-primary"
+                        placeholder="https://..." required>
+                </div>
+
+                <button type="submit"
+                    class="w-full py-3 bg-primary hover:bg-primary/90 rounded-lg font-bold shadow-lg shadow-primary/25 mt-4">Publish
+                    Content</button>
+            </form>
+
+            <!-- Manage Content List -->
+            <div class="mt-8 bg-card p-8 rounded-2xl border border-white/5">
+                <h4 class="text-lg font-bold mb-4 border-b border-white/5 pb-2">Manage Published Content</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-white/5 text-gray-400 text-sm uppercase">
+                            <tr>
+                                <th class="px-6 py-4">Title</th>
+                                <th class="px-6 py-4">Type</th>
+                                <th class="px-6 py-4">Grade</th>
+                                <th class="px-6 py-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contentTableBody" class="divide-y divide-white/5 text-sm text-gray-300">
+                            <!-- Loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Marks -->
+        <section id="sec-marks" class="hidden space-y-6">
+            <h3 class="text-xl font-bold flex items-center gap-2">
+                <span class="w-2 h-8 bg-green-500 rounded-full"></span>
+                Enter Student Marks
+            </h3>
+
+            <form id="addMarksForm" class="bg-card p-8 rounded-2xl border border-white/5 max-w-2xl space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Select Student</label>
+                    <select id="mStudentId"
+                        class="w-full px-4 py-3 rounded-lg bg-dark border border-white/10 text-white focus:outline-none focus:border-primary">
+                        <!-- Populated via JS -->
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Exam Name</label>
+                    <input type="text" id="mExam"
+                        class="w-full px-4 py-3 rounded-lg bg-dark border border-white/10 text-white focus:outline-none focus:border-primary"
+                        placeholder="Ex: Term Test 1" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Score (%)</label>
+                    <input type="number" id="mScore"
+                        class="w-full px-4 py-3 rounded-lg bg-dark border border-white/10 text-white focus:outline-none focus:border-primary"
+                        max="100" min="0" required>
+                </div>
+
+                <button type="submit"
+                    class="w-full py-3 bg-green-500 hover:bg-green-600 rounded-lg font-bold shadow-lg shadow-green-500/25 mt-4">Save
+                    Marks</button>
+            </form>
+        </section>
+
+        <!-- SECTION: Settings -->
+        <section id="sec-settings" class="hidden space-y-6">
+            <h3 class="text-xl font-bold flex items-center gap-2">
+                <span class="w-2 h-8 bg-gray-500 rounded-full"></span>
+                Social Media Links
+            </h3>
+
+            <div class="bg-card p-8 rounded-2xl border border-white/5 max-w-2xl">
+                <p class="text-sm text-gray-400 mb-6">Update the links for the social media buttons on the Student
+                    Welcome page.</p>
+                <form id="settingsForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Facebook Page URL</label>
+                        <input type="url" id="setFb"
+                            class="w-full px-4 py-3 rounded-lg bg-dark border border-white/10 text-white focus:outline-none focus:border-primary"
+                            placeholder="https://facebook.com/yourpage">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">YouTube Channel URL</label>
+                        <input type="url" id="setYt"
+                            class="w-full px-4 py-3 rounded-lg bg-dark border border-white/10 text-white focus:outline-none focus:border-red-500"
+                            placeholder="https://youtube.com/@yourchannel">
+                    </div>
+
+                    <button type="submit"
+                        class="px-6 py-3 bg-white text-black hover:bg-gray-200 rounded-lg font-bold shadow-lg mt-4">Save
+                        Links</button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="toast"
+        class="fixed bottom-4 right-4 px-6 py-4 bg-gray-800 text-white rounded-xl shadow-2xl border border-white/10 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3">
+        <span class="text-xl">✅</span>
+        <span id="toastMsg">Action Successful</span>
+    </div>
+
+    <script src="db.js"></script>
+    <script>
+        // Check Admin
+        const user = db.getCurrentUser();
+        // Since we are in the admin panel, we assume the user is already logged in as admin locally.
+        // For better security, we should check with the DB, but local check is fast.
+        if (!user || user.role !== 'teacher') {
+            window.location.href = 'login.html';
+        }
+
+        // --- Students & Payment ---
+        async function loadStudents() {
+            const allStudents = await db.getAllStudents();
+            const filterGrade = document.getElementById('filterGrade').value;
+            const searchTerm = document.getElementById('searchStudent').value.toLowerCase();
+
+            // Filter
+            const students = allStudents.filter(s => {
+                const matchGrade = filterGrade === 'all' || s.grade === filterGrade;
+                const search = (s.name || '').toLowerCase();
+                const matchSearch = search.includes(searchTerm);
+                return matchGrade && matchSearch;
+            });
+
+            const tbody = document.getElementById('studentTableBody');
+            const studentSelect = document.getElementById('mStudentId'); // For Marks dropdown too
+
+            tbody.innerHTML = '';
+            studentSelect.innerHTML = '<option value="">-- Select Student --</option>';
+
+            const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+            const currentMonthKey = new Date().toISOString().slice(0, 7); // YYYY-MM
+
+            students.forEach(s => {
+                const isPaid = s.payments && s.payments.includes(currentMonthKey);
+                const barcode = s.barcode || 'N/A';
+
+                // Add to Table
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-white/5 transition-colors group";
+                tr.innerHTML = `
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-white">${s.name}</div>
+                        <div class="text-xs text-gray-400 mt-1">${s.contact || s.email}</div>
+                    </td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 bg-white/10 rounded text-xs font-mono">Grade ${s.grade}</span></td>
+                    <td class="px-6 py-4">
+                        ${isPaid
+                        ? `<div class="flex items-center gap-2">
+                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/20">Paid</span>
+                             <button onclick="cancelPayment('${s.id}')" class="text-xs text-red-400 hover:text-red-300 hover:underline" title="Cancel Payment">Undo</button>
+                           </div>`
+                        : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/20">Unpaid</span>`
+                    }
+                    </td>
+                    <td class="px-6 py-4 text-right flex items-center justify-end gap-2">
+                        ${!isPaid
+                        ? `<button onclick="markAsPaid('${s.id}')" class="text-primary hover:text-white font-medium text-xs border border-primary/50 hover:bg-primary px-3 py-1 rounded transition-all">Mark Paid</button>`
+                        : ``
+                    }
+                        <button onclick="removeStudent('${s.id}')" class="text-gray-500 hover:text-red-400 transition-colors p-1" title="Remove Student">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+
+                // Add to Select
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = `${s.name} (${barcode})`;
+                studentSelect.appendChild(opt);
+            });
+        }
+
+        // Event Listeners for Filters
+        document.getElementById('filterGrade').addEventListener('change', loadStudents);
+        document.getElementById('searchStudent').addEventListener('input', loadStudents);
+
+        async function markAsPaid(studentId) {
+            const currentMonthKey = new Date().toISOString().slice(0, 7);
+            const result = await db.addPayment(studentId, currentMonthKey);
+            if (result.success) {
+                showToast(`Payment marked for ${currentMonthKey}`);
+                loadStudents();
+            } else {
+                alert(result.message);
+            }
+        }
+
+        async function cancelPayment(studentId) {
+            const currentMonthKey = new Date().toISOString().slice(0, 7);
+            if (confirm("Are you sure you want to cancel this payment?")) {
+                const res = await db.removePayment(studentId, currentMonthKey);
+                if (res.success) {
+                    showToast("Payment Cancelled");
+                    loadStudents();
+                } else {
+                    alert("Error: " + res.message);
+                }
+            }
+        }
+
+        async function removeStudent(studentId) {
+            if (confirm("Are you sure you want to remove this student completely? This cannot be undone.")) {
+                const res = await db.removeUser(studentId);
+                if (res.success) {
+                    showToast("Student Removed");
+                    loadStudents();
+                } else {
+                    alert("Error: " + res.message);
+                }
+            }
+        }
+
+        // --- Add Content ---
+        document.getElementById('addContentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const type = document.getElementById('cType').value;
+            const grade = document.getElementById('cGrade').value;
+            const title = document.getElementById('cTitle').value;
+            const details = document.getElementById('cDetails').value;
+            const url = document.getElementById('cUrl').value;
+
+            const res = await db.addContent({ type, grade, title, details, url });
+            if (res.success) {
+                showToast("Content Added Successfully");
+                e.target.reset();
+                loadContentList(); // Refresh list
+            } else {
+                alert("Error adding content: " + res.message);
+            }
+        });
+
+        async function loadContentList() {
+            const content = await db.getAllContent();
+            const tbody = document.getElementById('contentTableBody');
+            tbody.innerHTML = '';
+
+            if (content.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-gray-500 italic">No content published yet.</td></tr>';
+                return;
+            }
+
+            content.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-white/5 transition-colors";
+                tr.innerHTML = `
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-white">${c.title}</div>
+                        <div class="text-xs text-gray-500 max-w-xs truncate">${c.details}</div>
+                    </td>
+                    <td class="px-6 py-4 capitalize"><span class="px-2 py-1 bg-white/10 rounded text-xs font-mono">${c.type}</span></td>
+                    <td class="px-6 py-4">Grade ${c.grade}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="deleteContent('${c.id}')" class="text-red-400 hover:text-red-300 transition-colors bg-red-500/10 hover:bg-red-500/20 px-3 py-1 rounded text-xs font-medium border border-red-500/20">Delete</button>
+                    </td>
+                 `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function deleteContent(id) {
+            if (confirm("Are you sure you want to delete this content item?")) {
+                const res = await db.deleteContent(id);
+                if (res.success) {
+                    showToast("Content Deleted");
+                    loadContentList();
+                } else {
+                    alert("Error deleting content");
+                }
+            }
+        }
+
+        // --- Add Marks ---
+        document.getElementById('addMarksForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const studentId = document.getElementById('mStudentId').value;
+            const exam = document.getElementById('mExam').value;
+            const score = parseInt(document.getElementById('mScore').value);
+
+            if (!studentId) { alert("Please select a student"); return; }
+
+            const res = await db.addMark({ studentId, exam, score, total: 100 });
+            if (res.success) {
+                showToast("Marks Saved Successfully");
+                e.target.reset();
+            } else {
+                alert("Error saving marks");
+            }
+        });
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // --- Switch Sections ---
+        function showSection(id) {
+            ['students', 'content', 'marks', 'settings'].forEach(s => {
+                const sect = document.getElementById('sec-' + s);
+                const nav = document.getElementById('nav-' + s);
+                if (sect) sect.classList.add('hidden');
+                if (nav) {
+                    nav.classList.remove('bg-white/5', 'text-white', 'font-medium');
+                    nav.classList.add('text-gray-400');
+                }
+            });
+            const activeSect = document.getElementById('sec-' + id);
+            const activeNav = document.getElementById('nav-' + id);
+
+            if (activeSect) activeSect.classList.remove('hidden');
+            if (activeNav) {
+                activeNav.classList.remove('text-gray-400', 'hover:bg-white/5');
+                activeNav.classList.add('bg-white/5', 'text-white', 'font-medium');
+            }
+
+            if (id === 'settings') loadSettings();
+        }
+
+        // --- Settings Logic ---
+        async function loadSettings() {
+            const settings = await db.getSettings();
+            document.getElementById('setFb').value = settings.facebook || '';
+            document.getElementById('setYt').value = settings.youtube || '';
+        }
+
+        document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const facebook = document.getElementById('setFb').value;
+            const youtube = document.getElementById('setYt').value;
+
+            const res = await db.updateSettings({ facebook, youtube });
+            if (res.success) {
+                showToast("Links Updated Successfully");
+            } else {
+                alert("Error updating settings");
+            }
+        });
+
+
+
+        // Init
+        // Init
+        loadStudents();
+        loadContentList();
+
+    </script>
+</body>
+
+</html>
